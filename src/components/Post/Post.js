@@ -1,66 +1,121 @@
-import { CardHeader,Card,CardContent,Typography } from "@mui/material";
-import React from "react";
-import { useState,useEffect } from "react";
-import './Post'
-function Post(){
-
-    const[posts,setPosts]=useState([]);
-    const[isLoaded,setIsLoaded]=useState(false);
-    const[isError,setIsError]=useState(false);
-
-    useEffect(()=>{
-        console.log('veri çekiyorum');
-        fetch('/api/post')
-        .then(response => response.json())
-        .then(
-            (data)=> {
-            setPosts(data);
-            setIsLoaded(true);
-            setIsError(false);
-            },
-            (error)=>{
-                setIsError(true);
-                setIsLoaded(true);
-                setPosts([]);
-                console.log(error)
-            })
-        },[]);
+import { Close, ExitToAppSharp, ExpandMore } from "@mui/icons-material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Button, IconButton } from "@mui/material";
+import ShareIcon from '@mui/icons-material/Share'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import {
+    CardHeader,
+    Card,
+    CardContent,
+    Typography,
+    
+    Avatar,
+    CardActions,
+    Collapse
+} from "@mui/material";
+import React, { useState } from "react";
+import './Post.scss'
+import { pink, red } from "@mui/material/colors";
+import { color } from "@mui/system";
 
 
+function Post(props) {
 
-    if(isError){
-        return (
-            <div>HATA VARR</div>
-        );
-    }else if(!isLoaded){
-        return(
-            <div>Yükleniyor!!</div>
-        );
-    }else {
-        return (
-            <div>
-                {
-                    posts.map((post,index) => (
-                        <Card key={index} className='post-card' variant="outlined">
-                        <CardContent>
-                            
-                            <CardHeader title={post.title}>
-                                
-                            </CardHeader>
+    const [expanded, setExpanded] = React.useState(false);
+    const[isLiked,setIsliked] =useState(false);
 
-                            <Typography >
-                                {post.text}
-                            </Typography>
-                        </CardContent>               
-                        </Card>
-                        
-                        
-                    ))
-                }
 
-            </div>
-        );
+    const handleExpandClick = () => {
+        setExpanded(!expanded);
+    };
+    const {post,usersId} = props;
+
+    const deletePost = () =>{
+        fetch("/api/post/"+post.id,{
+            method: "DELETE"
+        }
+        
+        ).then((res) => res.json)
+        .catch((error) => console.log(error))
     }
+
+    const saveLike=()=>{
+        fetch("/api/likes",{
+            method: "POST",
+            headers:{
+                "Content-Type" : "application/json"
+            },
+            body:{
+                usersId: usersId,
+                postId:post.id
+            }
+        })
+        .then((response) => response.json)
+        .catch((error) => console.log(error))
+    }
+
+
+
+    const handleLike = ()=>{
+        setIsliked(!isLiked);
+        saveLike();
+
+    }
+
+    return (
+        <div>
+            <Card variant="outlined" className="post-card">
+                <CardHeader title={
+                        post.title
+                    }
+                    avatar={
+                        <Avatar>R</Avatar>
+                     }
+                     action={
+                         <IconButton onClick={deletePost}>
+                             <Close ></Close>
+                         </IconButton>
+                     }
+                    
+                >
+                    
+                </CardHeader>
+                <CardContent>
+
+                </CardContent>
+                <CardActions disableSpacing>
+                    <IconButton aria-label="add to favorites" onClick={handleLike} >
+                    <FavoriteIcon style={ isLiked ? {color:"red"} :null}/>
+                    </IconButton>
+                   
+                    <ExpandMore 
+                    
+                    onClick={handleExpandClick}
+                    aria-expanded={expanded}
+                    aria-label="show more"
+                    className="post-card-expand-more"
+                    >
+                    <ExpandMoreIcon />
+                    </ExpandMore>
+                </CardActions>
+                <Collapse in={expanded}
+                    timeout="auto"
+                    unmountOnExit>
+                    <CardContent>                       
+                        <Typography paragraph>
+                        {post.text }
+                        </Typography>
+                      
+                        
+                    </CardContent>
+                </Collapse>
+            </Card>
+
+        </div>
+
+
+    );
+
 
 }
 
