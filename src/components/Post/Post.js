@@ -1,8 +1,9 @@
-import { Close, ExitToAppSharp, ExpandMore } from "@mui/icons-material";
+import { Close, ExpandMore } from "@mui/icons-material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Button, IconButton } from "@mui/material";
-import ShareIcon from '@mui/icons-material/Share'
+import { IconButton } from "@mui/material";
+
 import FavoriteIcon from '@mui/icons-material/Favorite'
+import PostService from "../../services/PostService";
 import {
     CardHeader,
     Card,
@@ -13,31 +14,47 @@ import {
     CardActions,
     Collapse
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import './Post.scss'
-import { pink, red } from "@mui/material/colors";
-import { color } from "@mui/system";
+import Comment from "../Comment/Comment";
+
 
 
 function Post(props) {
 
     const [expanded, setExpanded] = React.useState(false);
     const[isLiked,setIsliked] =useState(false);
+    const [comments,setComments]=useState([]);
+    const {post,usersId} = props;
+    
+    useEffect(()=>{
+       var postLike = post.likes.filter(like => like.usersId === usersId);
 
+    },[]);
+
+
+
+
+    const getAllComments=(postId)=>{
+        fetch("/api/comment/postId="+postId)
+        .then(res=> res.json)
+        .then(data => setComments(data))
+        .catch((error) => {
+            console.log(error);
+            setComments([]);
+        });
+    }
 
     const handleExpandClick = () => {
-        setExpanded(!expanded);
-    };
-    const {post,usersId} = props;
-
-    const deletePost = () =>{
-        fetch("/api/post/"+post.id,{
-            method: "DELETE"
+        if(expanded){
+            getAllComments(post.id);
         }
+        setExpanded(!expanded);
         
-        ).then((res) => res.json)
-        .catch((error) => console.log(error))
-    }
+    };
+    
+
+    
 
     const saveLike=()=>{
         fetch("/api/likes",{
@@ -72,7 +89,7 @@ function Post(props) {
                         <Avatar>R</Avatar>
                      }
                      action={
-                         <IconButton onClick={deletePost}>
+                         <IconButton  onClick={()=>{PostService.deletePost(post.id)}}>
                              <Close ></Close>
                          </IconButton>
                      }
@@ -81,7 +98,10 @@ function Post(props) {
                     
                 </CardHeader>
                 <CardContent>
+                    <Typography sx={{textAlign:"left"}}>
+                     {post.text }
 
+                    </Typography>
                 </CardContent>
                 <CardActions disableSpacing>
                     <IconButton aria-label="add to favorites" onClick={handleLike} >
@@ -102,9 +122,14 @@ function Post(props) {
                     timeout="auto"
                     unmountOnExit>
                     <CardContent>                       
-                        <Typography paragraph>
-                        {post.text }
-                        </Typography>
+                        <div>
+                           
+                            {comments.map((comment,index) => (
+                                <Comment key={index} comment={comment} ></Comment>
+                                
+                            
+                            ))}
+                        </div>
                       
                         
                     </CardContent>

@@ -1,32 +1,36 @@
 import { Button, Card, CardContent,  InputAdornment, OutlinedInput, Typography } from "@mui/material";
 import React, { useState } from "react";
-
+import {useNavigate } from "react-router-dom"
+import PostService from "../../services/PostService"
+import AuthService from "../../services/AuthService";
 function PostForm(props) {
 
     const[title,setTitle] =useState("");
     const[text,setText]=useState("");
-     const{usersId,userName,refreshPosts}=props;
+    const{usersId,refreshPosts}=props;
+    const navigate = useNavigate();
 
      const clearForm=()=>{
          setTitle("");
          setText("");
      }
+     
 
     const savePost=()=>{
-        fetch("/api/post",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify(
-                {
-                    title:title,
-                    usersId:usersId,
-                    text:text
-                }
-            )
-        })
-        .then((res) => res.json)
+
+        PostService.savePost(title,text,usersId)
+        .then((res) => 
+        {
+            if(res.status===401){
+                AuthService.refreshToken(navigate);
+            }
+            else{
+                console.log("saved"); // fixme: popup
+            }
+        }
+        
+        
+        )       
         .catch((error) => console.log(error));
     }
     const handleSubmit=() =>{
