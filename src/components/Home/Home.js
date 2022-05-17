@@ -3,7 +3,7 @@ import Post from "../Post/Post";
 import { useState,useEffect } from "react";
 import PostForm from "../Post/PostForm";
 import {useNavigate } from "react-router-dom"
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Snackbar } from "@mui/material";
 import AuthService from "../../services/AuthService";
 function Home(){
     let usersId = localStorage.getItem("currentUser");
@@ -49,6 +49,8 @@ function Home(){
     }
 
 
+
+
     useEffect(()=>{
           
         refreshPosts();
@@ -65,6 +67,18 @@ function Home(){
                 <CircularProgress />
             );
         }else {
+
+            if(posts.length <1){
+                return(
+                    <div>
+                        <PostForm usersId={usersId} refreshPosts={refreshPosts}></PostForm>
+                    </div>
+                )
+            }else{
+
+           
+
+
             return (
                <div>
                     <PostForm usersId={usersId} refreshPosts={refreshPosts}></PostForm>
@@ -81,7 +95,7 @@ function Home(){
                     
                </div>
                 
-            )}
+            ) }}
         }
 
 

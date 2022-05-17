@@ -17,7 +17,9 @@ import {
 import React, { useEffect, useState } from "react";
 import './Post.scss'
 import Comment from "../Comment/Comment";
-
+import SimpleSnackbar from "../Alert/SimpleSnackbar";
+import AuthService from "../../services/AuthService";
+import {useNavigate } from "react-router-dom"
 
 
 function Post(props) {
@@ -26,7 +28,11 @@ function Post(props) {
     const[isLiked,setIsliked] =useState(false);
     const [comments,setComments]=useState([]);
     const {post,usersId} = props;
-    
+    const [isSent,setIsSent]=useState(false);
+    const navigate = useNavigate();
+    const [isError,setIsError]=useState(false);
+    const [message,setMessage] =useState('');
+
     useEffect(()=>{
        var postLike = post.likes.filter(like => like.usersId === usersId);
 
@@ -79,6 +85,32 @@ function Post(props) {
 
     }
 
+    const deletePost= ()=>{
+        PostService.deletePost(post.id)
+        .then((res) => {
+            if(res.status===401){
+                AuthService.refreshToken(navigate);
+                setIsError(true);
+                setMessage("UnAuthorized Access");
+                setIsSent(true);
+
+            }
+            if(res.status===200){
+                setIsError(false);
+                setMessage("Successfully Deleted");
+                setIsSent(true);
+            }
+            else{
+                console.log("saved"); // fixme: popup
+            }
+        })
+      
+      .catch((error) => console.log(error))
+    }
+    const onCloseSnackbar = ()=>{
+        setIsSent(false);
+    }
+
     return (
         <div>
             <Card variant="outlined" className="post-card">
@@ -89,7 +121,7 @@ function Post(props) {
                         <Avatar>R</Avatar>
                      }
                      action={
-                         <IconButton  onClick={()=>{PostService.deletePost(post.id)}}>
+                         <IconButton  onClick={deletePost}>
                              <Close ></Close>
                          </IconButton>
                      }
@@ -135,6 +167,7 @@ function Post(props) {
                     </CardContent>
                 </Collapse>
             </Card>
+            <SimpleSnackbar isSuccess={isSent} onCloseCallback={onCloseSnackbar} message={message}></SimpleSnackbar>
 
         </div>
 

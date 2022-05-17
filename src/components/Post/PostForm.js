@@ -1,31 +1,47 @@
-import { Button, Card, CardContent,  InputAdornment, OutlinedInput, Typography } from "@mui/material";
+import {  Button, Card, CardContent,  InputAdornment, OutlinedInput, Typography } from "@mui/material";
 import React, { useState } from "react";
 import {useNavigate } from "react-router-dom"
 import PostService from "../../services/PostService"
 import AuthService from "../../services/AuthService";
+import SimpleSnackbar from "../Alert/SimpleSnackbar";
 function PostForm(props) {
 
     const[title,setTitle] =useState("");
     const[text,setText]=useState("");
     const{usersId,refreshPosts}=props;
     const navigate = useNavigate();
+    const [isSent,setIsSent]=useState(false);
+    const [isError,setIsError]=useState(false);
+    const [message,setMessage] =useState('');
 
      const clearForm=()=>{
          setTitle("");
          setText("");
      }
-     
+
+    
 
     const savePost=()=>{
 
+        
         PostService.savePost(title,text,usersId)
         .then((res) => 
         {
             if(res.status===401){
                 AuthService.refreshToken(navigate);
+                setIsError (true);
+                setMessage("UnAuthorized Access");
+                setIsSent(true);
+            }
+            if(res.status===200){
+                
+                setIsError (false);
+                setMessage("Successfully Sent");
+                setIsSent(true);
             }
             else{
                 console.log("saved"); // fixme: popup
+                setIsError (true);
             }
         }
         
@@ -40,11 +56,16 @@ function PostForm(props) {
 
     }
 
+
     const handleTitle=(value)=>{
         setTitle(value);
     }
     const handleText = (value)=>{
         setText(value);
+        
+    }
+    const onCloseSnackbar = ()=>{
+        setIsSent(false);
     }
 
     return (
@@ -70,6 +91,7 @@ function PostForm(props) {
 
 
             </Card>
+            <SimpleSnackbar isSuccess={isSent} onCloseCallback={onCloseSnackbar} severity={isError ?"error" :"success"} message={message}></SimpleSnackbar>
         </div>
     );
 }
