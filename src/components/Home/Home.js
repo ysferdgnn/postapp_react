@@ -5,6 +5,8 @@ import PostForm from "../Post/PostForm";
 import {useNavigate } from "react-router-dom"
 import { CircularProgress, Snackbar } from "@mui/material";
 import AuthService from "../../services/AuthService";
+
+
 function Home(){
     let usersId = localStorage.getItem("currentUser");
     const navigate = useNavigate();
@@ -15,7 +17,7 @@ function Home(){
 
 
     const  refreshPosts=()=>{
-
+        console.log("refreshed");
          fetch('/api/post',{
             headers:{
                 "Content-Type":"application/json",
@@ -85,7 +87,7 @@ function Home(){
                      {
                          
                         posts.map((postmap,index) => (
-                            <Post key={index} post={postmap} usersId={usersId}></Post>
+                            <Post key={index} post={postmap} usersId={usersId} refreshCallback={refreshPosts}></Post>
                             
                         
                         ))

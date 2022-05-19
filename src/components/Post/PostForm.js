@@ -38,6 +38,7 @@ function PostForm(props) {
                 setIsError (false);
                 setMessage("Successfully Sent");
                 setIsSent(true);
+                refreshPosts();
             }
             else{
                 console.log("saved"); // fixme: popup
@@ -52,7 +53,7 @@ function PostForm(props) {
     const handleSubmit=() =>{
         savePost();
         clearForm();
-        refreshPosts();
+        
 
     }
 

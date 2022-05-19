@@ -27,11 +27,12 @@ function Post(props) {
     const [expanded, setExpanded] = React.useState(false);
     const[isLiked,setIsliked] =useState(false);
     const [comments,setComments]=useState([]);
-    const {post,usersId} = props;
+    const {post,usersId,refreshCallback} = props;
     const [isSent,setIsSent]=useState(false);
     const navigate = useNavigate();
     const [isError,setIsError]=useState(false);
     const [message,setMessage] =useState('');
+    
 
     useEffect(()=>{
        var postLike = post.likes.filter(like => like.usersId === usersId);
@@ -99,6 +100,7 @@ function Post(props) {
                 setIsError(false);
                 setMessage("Successfully Deleted");
                 setIsSent(true);
+                refreshCallback();
             }
             else{
                 console.log("saved"); // fixme: popup
