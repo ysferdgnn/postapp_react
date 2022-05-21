@@ -20,6 +20,7 @@ import Comment from "../Comment/Comment";
 import SimpleSnackbar from "../Alert/SimpleSnackbar";
 import AuthService from "../../services/AuthService";
 import {useNavigate } from "react-router-dom"
+import CommentForm from "../Comment/CommentForm";
 
 
 function Post(props) {
@@ -42,10 +43,18 @@ function Post(props) {
 
 
 
-    const getAllComments=(postId)=>{
-        fetch("/api/comment/postId="+postId)
-        .then(res=> res.json)
-        .then(data => setComments(data))
+    const getAllComments=()=>{
+        fetch("/api/comment/postId="+post.id,
+        {
+            headers:{
+                "Authorization" : localStorage.getItem("tokenKey")
+            }
+        })
+        .then(res=> res.json())
+        .then(data => {
+            setComments(data);
+            console.log(data);
+        })
         .catch((error) => {
             console.log(error);
             setComments([]);
@@ -53,8 +62,8 @@ function Post(props) {
     }
 
     const handleExpandClick = () => {
-        if(expanded){
-            getAllComments(post.id);
+        if(!expanded){
+            getAllComments();
         }
         setExpanded(!expanded);
         
@@ -157,7 +166,7 @@ function Post(props) {
                     unmountOnExit>
                     <CardContent>                       
                         <div>
-                           
+                            <CommentForm usersId = {localStorage.getItem("currentUser")} postId={post.id} refreshCallback={getAllComments} onCloseCallback={onCloseSnackbar}></CommentForm>
                             {comments.map((comment,index) => (
                                 <Comment key={index} comment={comment} ></Comment>
                                 

@@ -1,13 +1,16 @@
-import { Card } from "@mui/material";
+import { Avatar, Card, CardContent, CardHeader, Paper, Typography } from "@mui/material";
 import React from "react";
 
 
-function Comment(){
+function Comment(props){
+
+
+    const {comment}=props
     return (
         <div>
-            <Card>
-
-            </Card>
+            <Paper elevation={0} sx={{marginTop:2}} variant="outlined">
+                {comment.text}
+            </Paper>
         </div>
     );
 }
