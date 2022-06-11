@@ -1,4 +1,4 @@
-import { Close, ExpandMore } from "@mui/icons-material";
+import { Close, ExpandMore, LineStyle } from "@mui/icons-material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { IconButton } from "@mui/material";
 
@@ -33,11 +33,16 @@ function Post(props) {
     const navigate = useNavigate();
     const [isError,setIsError]=useState(false);
     const [message,setMessage] =useState('');
+    const [likesCount,setLikesCount] = useState('');
     
 
     useEffect(()=>{
-       var postLike = post.likes.filter(like => like.usersId === usersId);
-
+       var postLike = post.likes.find(like => like.usersId ==usersId);
+       setLikesCount(post.likes.length)
+        if(postLike){
+            setIsliked(true);
+        }
+       
     },[]);
 
 
@@ -50,7 +55,15 @@ function Post(props) {
                 "Authorization" : localStorage.getItem("tokenKey")
             }
         })
-        .then(res=> res.json())
+        .then(response=> {
+            if(response.status===401){
+                AuthService.refreshToken(navigate,getAllComments);
+               
+               return []
+          }else{
+             return response.json()
+          }
+        })
         .then(data => {
             setComments(data);
             console.log(data);
@@ -73,15 +86,18 @@ function Post(props) {
     
 
     const saveLike=()=>{
-        fetch("/api/likes",{
+        fetch("/api/likes/changelikes",{
             method: "POST",
             headers:{
-                "Content-Type" : "application/json"
+                "Content-Type" : "application/json",
+                "Authorization" : localStorage.getItem("tokenKey")
             },
-            body:{
-                usersId: usersId,
-                postId:post.id
-            }
+            body:JSON.stringify(
+                {
+                    usersId: usersId,
+                    postId:post.id
+                }
+            )
         })
         .then((response) => response.json)
         .catch((error) => console.log(error))
@@ -149,6 +165,7 @@ function Post(props) {
                 <CardActions disableSpacing>
                     <IconButton aria-label="add to favorites" onClick={handleLike} >
                     <FavoriteIcon style={ isLiked ? {color:"red"} :null}/>
+                    <Typography >{likesCount}</Typography>
                     </IconButton>
                    
                     <ExpandMore 
