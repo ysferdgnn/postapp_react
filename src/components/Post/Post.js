@@ -45,6 +45,11 @@ function Post(props) {
        
     },[]);
 
+    useEffect(()=>{       
+        setLikesCount(post.likes.length)
+        
+        
+     },[post]);
 
 
 
@@ -99,7 +104,18 @@ function Post(props) {
                 }
             )
         })
-        .then((response) => response.json)
+        .then((response) => {
+            if(response.status===401){
+                AuthService.refreshToken(navigate);
+                setMessage("UnAuthorized Access");
+
+            }
+            if(response.status===200){
+                 refreshCallback();
+            }
+        })
+        
+        
         .catch((error) => console.log(error))
     }
 

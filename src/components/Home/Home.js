@@ -16,7 +16,7 @@ function Home(){
     const[isError,setIsError]=useState(false);
 
 
-    const  refreshPosts=()=>{
+    const  refreshPosts=async ()=>{
         console.log("refreshed");
          fetch('/api/post',{
             headers:{
