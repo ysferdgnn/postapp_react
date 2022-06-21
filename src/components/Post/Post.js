@@ -1,6 +1,6 @@
 import { Close, ExpandMore, LineStyle } from "@mui/icons-material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { IconButton } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import PostService from "../../services/PostService";
@@ -25,7 +25,7 @@ import CommentForm from "../Comment/CommentForm";
 
 function Post(props) {
 
-    const [expanded, setExpanded] = React.useState(false);
+    const [expanded, setExpanded] = useState(false);
     const[isLiked,setIsliked] =useState(false);
     const [comments,setComments]=useState([]);
     const {post,usersId,refreshCallback} = props;
@@ -34,7 +34,8 @@ function Post(props) {
     const [isError,setIsError]=useState(false);
     const [message,setMessage] =useState('');
     const [likesCount,setLikesCount] = useState('');
-    
+    const [commentPageNumber,setCommentPageNumber] = useState(0);
+    const commentPageSize = 5;
 
     useEffect(()=>{
        var postLike = post.likes.find(like => like.usersId ==usersId);
@@ -51,32 +52,29 @@ function Post(props) {
         
      },[post]);
 
+     useEffect(()=>{
+        if(expanded){
+            getAllComments();
+        }
+        
+     },[commentPageNumber])
 
 
-    const getAllComments=()=>{
-        fetch("/api/comment/postId="+post.id,
+    const getAllComments=async ()=>{
+        const  response =await fetch("/api/comment/postId="+post.id+"/"+commentPageNumber+"/"+commentPageSize,
         {
             headers:{
                 "Authorization" : localStorage.getItem("tokenKey")
             }
-        })
-        .then(response=> {
-            if(response.status===401){
-                AuthService.refreshToken(navigate,getAllComments);
-               
-               return []
-          }else{
-             return response.json()
-          }
-        })
-        .then(data => {
-            setComments(data);
-            console.log(data);
-        })
-        .catch((error) => {
-            console.log(error);
-            setComments([]);
         });
+
+        if(response.ok){     
+            let newComments =  await response.json();
+            
+            setComments(prevComments =>([...prevComments,...newComments]));
+           
+            console.log(newComments);
+        }
     }
 
     const handleExpandClick = () => {
@@ -86,10 +84,10 @@ function Post(props) {
         setExpanded(!expanded);
         
     };
-    
-
-    
-
+    const addOneCommentsToComments = async(comment)=>{
+        debugger
+        setComments(prevComments =>([...prevComments,comment]));
+    }
     const saveLike=()=>{
         fetch("/api/likes/changelikes",{
             method: "POST",
@@ -118,15 +116,18 @@ function Post(props) {
         
         .catch((error) => console.log(error))
     }
-
-
-
     const handleLike = ()=>{
         setIsliked(!isLiked);
         saveLike();
 
     }
-
+    const increaseCommentPageNumber=() =>{
+        var pageNum = commentPageNumber;
+        console.log("comments page number ->" +pageNum);
+        setCommentPageNumber(pageNum+1);
+        
+        
+    }
     const deletePost= ()=>{
         PostService.deletePost(post.id)
         .then((res) => {
@@ -199,16 +200,18 @@ function Post(props) {
                     unmountOnExit>
                     <CardContent>                       
                         <div>
-                            <CommentForm usersId = {localStorage.getItem("currentUser")} postId={post.id} refreshCallback={getAllComments} onCloseCallback={onCloseSnackbar}></CommentForm>
+                            <CommentForm usersId = {localStorage.getItem("currentUser")} postId={post.id} addCommentCallback={addOneCommentsToComments} onCloseCallback={onCloseSnackbar}></CommentForm>
                             {comments.map((comment,index) => (
                                 <Comment key={index} comment={comment} ></Comment>
                                 
                             
                             ))}
+                           
                         </div>
                       
-                        
+                        <Button variant="contained" onClick={increaseCommentPageNumber}>Load More</Button>
                     </CardContent>
+                    
                 </Collapse>
             </Card>
             <SimpleSnackbar isSuccess={isSent} onCloseCallback={onCloseSnackbar} message={message}></SimpleSnackbar>
